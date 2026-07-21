@@ -13,6 +13,6 @@ public record UserWithCardsResponseDto(
         String surname,
         LocalDate birthDate,
         boolean active,
-        List<PaymentCardResponse> cards
+        List<PaymentCardResponseDto> cards
 ) {
 }
