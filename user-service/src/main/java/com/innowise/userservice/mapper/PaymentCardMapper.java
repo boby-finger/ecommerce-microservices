@@ -26,7 +26,7 @@ public class PaymentCardMapper {
                 paymentCard.getActive());
     }
 
-    public void updatePaymentCard(User user, PaymentCard paymentCard, PaymentCardRequestDto paymentCardRequestDto) {
+    public void updatePaymentCard(PaymentCard paymentCard, PaymentCardRequestDto paymentCardRequestDto) {
         paymentCard.setCardNumber(paymentCardRequestDto.cardNumber());
         paymentCard.setCardHolder(paymentCardRequestDto.cardHolder());
         paymentCard.setExpirationDate(paymentCardRequestDto.expirationDate());
