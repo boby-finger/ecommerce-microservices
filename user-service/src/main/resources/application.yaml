@@ -19,7 +19,7 @@ spring:
       hibernate:
         format_sql: true
         type:
-          prefered_instant_jdbc_type: TIMESTAMP_WITH_TIME_ZONE
+          preferred_instant_jdbc_type: TIMESTAMP_WITH_TIME_ZONE
 
   liquibase:
     enabled: true

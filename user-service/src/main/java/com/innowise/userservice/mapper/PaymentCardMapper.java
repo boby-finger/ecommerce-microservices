@@ -4,36 +4,34 @@ import com.innowise.userservice.dto.PaymentCardRequestDto;
 import com.innowise.userservice.dto.PaymentCardResponseDto;
 import com.innowise.userservice.model.PaymentCard;
 import com.innowise.userservice.model.User;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
-@Component
-public class PaymentCardMapper {
-    public PaymentCard toEntity(User user, PaymentCardRequestDto paymentCardRequestDto) {
-        PaymentCard paymentCard = new PaymentCard();
-        paymentCard.setUser(user);
-        paymentCard.setCardNumber(paymentCardRequestDto.cardNumber());
-        paymentCard.setCardHolder(paymentCardRequestDto.cardHolder());
-        paymentCard.setExpirationDate(paymentCardRequestDto.expirationDate());
-        paymentCard.setActive(true);
-        return paymentCard;
-    }
+@Mapper(componentModel = "spring")
+public interface PaymentCardMapper {
 
-    public PaymentCardResponseDto toDto(PaymentCard paymentCard) {
-        return new PaymentCardResponseDto(paymentCard.getId(),
-                hideCardNumber(paymentCard.getCardNumber()),
-                paymentCard.getCardHolder(),
-                paymentCard.getExpirationDate(),
-                paymentCard.getActive());
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt",ignore = true)
+    @Mapping(target = "active", constant = "true")
+    PaymentCard toEntity(User user, PaymentCardRequestDto dto);
 
-    public void updatePaymentCard(PaymentCard paymentCard, PaymentCardRequestDto paymentCardRequestDto) {
-        paymentCard.setCardNumber(paymentCardRequestDto.cardNumber());
-        paymentCard.setCardHolder(paymentCardRequestDto.cardHolder());
-        paymentCard.setExpirationDate(paymentCardRequestDto.expirationDate());
-    }
 
-    public String hideCardNumber(String cardNumber) {
+    @Mapping(target = "cardNumber", source = "cardNumber", qualifiedByName = "hideCardNumber")
+    PaymentCardResponseDto toDto(PaymentCard paymentCard);
+
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    void updatePaymentCard(@MappingTarget PaymentCard paymentCard, PaymentCardRequestDto paymentCardRequestDto);
+
+    @Named("hideCardNumber")
+    default String hideCardNumber(String cardNumber) {
         //мб добавить проверку но скорее всего такого просто невозможно изза валидации входящего requestdto
-        return "**** **** ****" +  cardNumber.substring(cardNumber.length() - 4);
+        return "**** **** **** " +  cardNumber.substring(cardNumber.length() - 4);
     }
 }
