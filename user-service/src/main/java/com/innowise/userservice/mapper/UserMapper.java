@@ -5,41 +5,31 @@ import com.innowise.userservice.dto.UserRequestDto;
 import com.innowise.userservice.dto.UserResponseDto;
 import com.innowise.userservice.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.User;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
-@Component
-@RequiredArgsConstructor
-public class UserMapper {
-    private final PaymentCardMapper paymentCardMapper;
+@Mapper(componentModel = "spring", uses = PaymentCardMapper.class) //не возвращает замаскированный номер карты,
+// надо дать ссылку на класс в котором hidecardnumber
+public interface UserMapper {
 
-    public User toEntity(UserRequestDto userRequestDto) {
-        User user = new User();
-        user.setName(userRequestDto.name());
-        user.setSurname(userRequestDto.surname());
-        user.setEmail(userRequestDto.email());
-        user.setBirthDate(userRequestDto.birthDate());
-        user.setActive(true);
-        return user;
-    }
+    @Mapping(target = "id",  ignore = true)
+    @Mapping(target = "updatedAt",  ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "cards", ignore = true)
+    @Mapping(target = "active", constant = "true")
+    User toEntity(UserRequestDto dto);
 
-    public UserResponseDto toDto(User user) {
-        return new UserResponseDto(
-                user.getId(), user.getEmail(), user.getName(),  user.getSurname(),
-                user.getBirthDate(), user.getActive()
-        );
-    }
 
-    public UserWithCardsResponseDto toDtoWithCards(User user) {
-        return new UserWithCardsResponseDto(user.getId(), user.getEmail(),
-                user.getName(), user.getSurname(), user.getBirthDate(), user.getActive(),
-                user.getCards().stream().map(paymentCardMapper::toDto).toList());
-    }
+    UserResponseDto toDto(User user);
 
-    public void updateUser(User user, UserRequestDto userRequestDto) {
-        user.setName(userRequestDto.name());
-        user.setSurname(userRequestDto.surname());
-        user.setEmail(userRequestDto.email());
-        user.setBirthDate(userRequestDto.birthDate());
-    }
+    UserWithCardsResponseDto toDtoWithCards(User user);
+
+
+    @Mapping(target = "id",  ignore = true)
+    @Mapping(target = "updatedAt",  ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "cards", ignore = true)
+    @Mapping(target = "active", ignore = true)
+    void updateUser(@MappingTarget User user, UserRequestDto dto);
 }
