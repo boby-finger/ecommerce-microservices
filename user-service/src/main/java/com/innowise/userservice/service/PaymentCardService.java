@@ -29,9 +29,9 @@ public class PaymentCardService {
     private final PaymentCardMapper paymentCardMapper;
 
     @Transactional
-    public PaymentCardResponseDto createPaymentCard(PaymentCardRequestDto paymentCardRequestDto) {
-        User user = userRepository.findById(paymentCardRequestDto.userId())
-                .orElseThrow(() -> new UserNotFoundException(paymentCardRequestDto.userId()));
+    public PaymentCardResponseDto createPaymentCard(UUID userId, PaymentCardRequestDto paymentCardRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
         if(paymentCardRepository.countCardsByUserId(user.getId()) >= MAX_CARDS)
             {throw new CardLimitException(MAX_CARDS);}
         PaymentCard card = paymentCardMapper.toEntity(user, paymentCardRequestDto);
