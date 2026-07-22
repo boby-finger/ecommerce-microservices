@@ -1,18 +1,16 @@
 package com.innowise.userservice.dto;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.LuhnCheck;
-import org.hibernate.validator.constraints.UUID;
+
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record PaymentCardRequestDto(
-        @NotBlank @UUID
+        @NotNull
         UUID userId,
-        @NotBlank @LuhnCheck
+        @NotBlank @Pattern(regexp = "\\d{16}") @LuhnCheck
         String cardNumber,
         @NotBlank @Size(max=100)
         String cardHolder,
