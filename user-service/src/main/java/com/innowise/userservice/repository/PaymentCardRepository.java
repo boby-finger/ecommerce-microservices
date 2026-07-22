@@ -14,11 +14,11 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCard, UUID>{
     long countCardsByUserId(UUID userId);
 
     @Query(value = "select * from payment_cards where user_id = :user_id", nativeQuery = true)
-    List<PaymentCard> findAllByUserID(@Param("user_id") UUID user_id);
+    List<PaymentCard> findAllByUserId(@Param("user_id") UUID user_id);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update PaymentCard c set c.active = :active, c.updatedAt = :now where c.id = :card_id")
-    int updateActiceStatusCardById(@Param("card_id") UUID card_id,
+    int updateActiveStatusCardById(@Param("card_id") UUID card_id,
                        @Param("now") Instant now,
                        @Param("active") Boolean active);
 }

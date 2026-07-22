@@ -32,7 +32,7 @@ public abstract class BaseEntity {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (obj == null || Hibernate.getClass(this) != Hibernate.getClass(obj)) return false;
         BaseEntity that = (BaseEntity) obj;
         return this.id.equals(that.id);
     }
