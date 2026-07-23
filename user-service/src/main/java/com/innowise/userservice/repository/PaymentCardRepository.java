@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface PaymentCardRepository extends JpaRepository<PaymentCard, UUID>{
@@ -21,4 +22,7 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCard, UUID>{
     int updateActiveStatusCardById(@Param("card_id") UUID card_id,
                        @Param("now") Instant now,
                        @Param("active") Boolean active);
+
+    @Query("select c.user.id from PaymentCard c where c.id = :card_id")
+    Optional<UUID> findUserIdByIdCard(@Param("card_id") UUID card_id);
 }
