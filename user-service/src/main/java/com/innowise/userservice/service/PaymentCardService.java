@@ -1,5 +1,6 @@
 package com.innowise.userservice.service;
 
+import com.innowise.userservice.config.CacheConfig;
 import com.innowise.userservice.dto.PaymentCardRequestDto;
 import com.innowise.userservice.dto.PaymentCardResponseDto;
 import com.innowise.userservice.exceptions.CardLimitException;
@@ -11,6 +12,9 @@ import com.innowise.userservice.model.User;
 import com.innowise.userservice.repository.PaymentCardRepository;
 import com.innowise.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +31,21 @@ public class PaymentCardService {
     private final PaymentCardRepository paymentCardRepository;
     private final UserRepository userRepository;
     private final PaymentCardMapper paymentCardMapper;
+    private final CacheManager cacheManager;
+
+    public void cacheEvictForUser(UUID userId)
+    {
+        Cache cache = cacheManager.getCache(CacheConfig.USERS_CACHE);
+        if (cache != null) {
+            cache.evict(userId);
+        }
+    }
 
     @Transactional
-    public PaymentCardResponseDto createPaymentCard(PaymentCardRequestDto paymentCardRequestDto) {
-        User user = userRepository.findById(paymentCardRequestDto.userId())
-                .orElseThrow(() -> new UserNotFoundException(paymentCardRequestDto.userId()));
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#userId")
+    public PaymentCardResponseDto createPaymentCard(UUID userId, PaymentCardRequestDto paymentCardRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
         if(paymentCardRepository.countCardsByUserId(user.getId()) >= MAX_CARDS)
             {throw new CardLimitException(MAX_CARDS);}
         PaymentCard card = paymentCardMapper.toEntity(user, paymentCardRequestDto);
@@ -46,9 +60,9 @@ public class PaymentCardService {
         return paymentCardMapper.toDto(card);
     }
 
-    public List<PaymentCardResponseDto> getAllPaymentCardsByUserId(UUID id){
-        if(userRepository.findById(id).isEmpty()) throw new UserNotFoundException(id);
-        return paymentCardRepository.findAllByUserId(id)
+    public List<PaymentCardResponseDto> getAllPaymentCardsByUserId(UUID userId){
+        if(userRepository.findById(userId).isEmpty()) throw new UserNotFoundException(userId);
+        return paymentCardRepository.findAllByUserId(userId)
                 .stream()
                 .map(paymentCardMapper::toDto)
                 .toList();
@@ -59,21 +73,23 @@ public class PaymentCardService {
         PaymentCard card = paymentCardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException(id));
         paymentCardMapper.updatePaymentCard(card, paymentCardRequestDto);
+        cacheEvictForUser(card.getUser().getId());
         return paymentCardMapper.toDto(card);
     }
 
     @Transactional
     public void setActivePaymentCard(UUID id, boolean active) {
-        int update = paymentCardRepository.updateActiveStatusCardById(id, Instant.now(), active);
-        if(update == 0){
-            throw new CardNotFoundException(id);
-        }
+        UUID userId = paymentCardRepository.findUserIdByCardId(id).orElseThrow(() -> new CardNotFoundException(id));
+        paymentCardRepository.updateActiveStatusCardById(id, Instant.now(), active);
+        cacheEvictForUser(userId);
     }
 
     @Transactional
     public void deletePaymentCardById(UUID id) {
         PaymentCard card = paymentCardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException(id));
+        UUID userId = card.getUser().getId();
         card.getUser().removePaymentCard(card);
+        cacheEvictForUser(userId);
     }
 }

@@ -8,11 +8,11 @@ public final class UserSpecifications {
 
     public static Specification<User> searchUserByName(String name){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("name"), name));
+                (name == null || name.isBlank()) ? null : criteriaBuilder.equal(root.get("name"), name));
     }
 
     public static Specification<User> searchUserBySurname(String surname){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("surname"), surname));
+                (surname == null || surname.isBlank()) ? null : criteriaBuilder.equal(root.get("surname"), surname));
     }
 }

@@ -1,10 +1,23 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: user_service_redis
+
+    ports:
+      - "${REDIS_PORT}:6379"
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   postgres-db:
     image: postgres:16-alpine
     container_name: user_service_db
 
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
 
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -13,6 +26,28 @@ services:
 
     volumes:
       - pg_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  user-service:
+    build: .
+    container_name: user_service_app
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:8081"
 
 volumes:
   pg_data:

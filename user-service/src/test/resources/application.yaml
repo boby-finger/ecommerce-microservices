@@ -1,13 +1,4 @@
-server:
-  port: 8081
-
 spring:
-  application:
-    name: user-service
-
-  profiles:
-    default: local
-
   jpa:
     hibernate:
       ddl-auto: validate
@@ -23,4 +14,4 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
   cache:
-    type: redis
+    type: none

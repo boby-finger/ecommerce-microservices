@@ -27,6 +27,7 @@ public interface PaymentCardMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "user", ignore = true)
+    @Mapping(target = "active", ignore = true)
     void updatePaymentCard(@MappingTarget PaymentCard paymentCard, PaymentCardRequestDto paymentCardRequestDto);
 
     @Named("hideCardNumber")

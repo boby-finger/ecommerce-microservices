@@ -1,5 +1,6 @@
 package com.innowise.userservice.service;
 
+import com.innowise.userservice.config.CacheConfig;
 import com.innowise.userservice.dto.UserRequestDto;
 import com.innowise.userservice.dto.UserResponseDto;
 import com.innowise.userservice.dto.UserWithCardsResponseDto;
@@ -10,6 +11,8 @@ import com.innowise.userservice.model.User;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.spec.UserSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class UserService {
         return userMapper.toDto(user);
     }
 
+    @Cacheable(value = CacheConfig.USERS_CACHE, key = "#id")
     public UserWithCardsResponseDto getUserWithCardsById(UUID id) {
         User user = userRepository.findByIdWithCards(id).orElseThrow(()
                 -> new UserNotFoundException(id));
@@ -50,6 +54,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#id")
     public UserResponseDto updateUser(UUID id, UserRequestDto userRequestDto) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         if(!user.getEmail().equals(userRequestDto.email()) && userRepository.existsByEmail(userRequestDto.email()))
@@ -59,6 +64,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#id")
     public void setActiveUser(UUID id, boolean active) {
         int update = userRepository.updateActiveStatusUserById(id, Instant.now(), active);
         if(update==0) {
@@ -67,6 +73,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.USERS_CACHE, key = "#id")
     public void deleteUser(UUID id){
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userRepository.delete(user);
