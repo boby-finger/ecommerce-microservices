@@ -24,5 +24,5 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCard, UUID>{
                        @Param("active") Boolean active);
 
     @Query("select c.user.id from PaymentCard c where c.id = :card_id")
-    Optional<UUID> findUserIdByIdCard(@Param("card_id") UUID card_id);
+    Optional<UUID> findUserIdByCardId(@Param("card_id") UUID card_id);
 }

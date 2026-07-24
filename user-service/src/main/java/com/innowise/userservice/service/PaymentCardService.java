@@ -79,7 +79,7 @@ public class PaymentCardService {
 
     @Transactional
     public void setActivePaymentCard(UUID id, boolean active) {
-        UUID userId = paymentCardRepository.findUserIdByIdCard(id).orElseThrow(() -> new CardNotFoundException(id));
+        UUID userId = paymentCardRepository.findUserIdByCardId(id).orElseThrow(() -> new CardNotFoundException(id));
         paymentCardRepository.updateActiveStatusCardById(id, Instant.now(), active);
         cacheEvictForUser(userId);
     }
