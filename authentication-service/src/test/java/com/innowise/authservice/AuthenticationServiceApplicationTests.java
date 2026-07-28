@@ -1,4 +1,4 @@
-package com.example.authservice;
+package com.innowise.authservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
