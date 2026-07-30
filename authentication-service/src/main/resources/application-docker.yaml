@@ -5,3 +5,6 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     show-sql: false
+
+user-service:
+  base-url: http://user-service:8081
