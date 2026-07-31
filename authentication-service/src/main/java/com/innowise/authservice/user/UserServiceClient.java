@@ -1,7 +1,7 @@
 package com.innowise.authservice.user;
 
-import com.innowise.authservice.dto.UserServiceCreateRequest;
-import com.innowise.authservice.dto.UserServiceResponse;
+import com.innowise.authservice.dto.UserServiceCreateRequestDto;
+import com.innowise.authservice.dto.UserServiceResponseDto;
 import com.innowise.authservice.exception.UserServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,13 +16,13 @@ public class UserServiceClient {
 
     private final RestClient userServiceRestClient;
 
-    public UUID createUser(UserServiceCreateRequest request) {
+    public UUID createUser(UserServiceCreateRequestDto request) {
         try {
-            UserServiceResponse response = userServiceRestClient.post()
+            UserServiceResponseDto response = userServiceRestClient.post()
                     .uri("/api/v1/users")
                     .body(request)
                     .retrieve()
-                    .body(UserServiceResponse.class);
+                    .body(UserServiceResponseDto.class);
 
             if (response == null || response.id() == null) {
                 throw new UserServiceException("User-service returned empty response");
