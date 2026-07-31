@@ -1,6 +1,5 @@
 package com.innowise.userservice.controller;
 
-
 import com.innowise.userservice.dto.UserRequestDto;
 import com.innowise.userservice.dto.UserResponseDto;
 import com.innowise.userservice.dto.UserWithCardsResponseDto;
@@ -13,6 +12,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 
 import java.util.UUID;
 
@@ -23,16 +24,19 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'INTERNAL')")
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto userRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestDto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserWithCardsResponseDto> getUserById(@PathVariable("id") UUID id) {
+    @PreAuthorize("hasRole('ADMIN') or @access.isSelf(#id, authentication)")
+    public ResponseEntity<UserWithCardsResponseDto> getUserById(@P("id") @PathVariable("id") UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserWithCardsById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponseDto>> getAllUsers(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String surname,
@@ -42,12 +46,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(@PathVariable("id") UUID id,
+    @PreAuthorize("hasRole('ADMIN') or @access.isSelf(#id, authentication)")
+    public ResponseEntity<UserResponseDto> updateUser(@P("id") @PathVariable("id") UUID id,
                                                       @Valid @RequestBody UserRequestDto userRequestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(id, userRequestDto));
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> setUserStatus(@PathVariable("id") UUID id,
                                               @RequestParam boolean active) {
         userService.setActiveUser(id, active);
@@ -55,6 +61,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
