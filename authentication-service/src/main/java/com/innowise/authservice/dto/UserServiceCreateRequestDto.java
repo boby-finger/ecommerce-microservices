@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 // пока что буду дублировать UserRequestDto
 // мб потом сделать OpenAPI-спецификацию с генерацией клиента
-public record UserServiceCreateRequest(
+public record UserServiceCreateRequestDto(
         String email,
         String name,
         String surname,
