@@ -1,3 +1,9 @@
+security:
+  jwt:
+    jwk-set-uri: http://localhost:8002/oauth2/jwks
+    issuer: authentication-service
+  internal-api-key: test-internal-key
+
 spring:
   jpa:
     hibernate:

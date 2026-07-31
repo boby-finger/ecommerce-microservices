@@ -1,3 +1,7 @@
+security:
+  jwt:
+    jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8002/oauth2/jwks}
+
 spring:
   datasource:
     url: ${DB_URL}

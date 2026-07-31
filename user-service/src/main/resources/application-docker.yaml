@@ -1,3 +1,7 @@
+security:
+  jwt:
+    jwk-set-uri: ${AUTH_JWKS_URI:http://auth-service:8002/oauth2/jwks}
+
 spring:
   datasource:
     url: jdbc:postgresql://postgres-db:5432/${DB_NAME}

@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -19,6 +21,18 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponseDto(HttpStatus.FORBIDDEN.value(), "Access Denied"));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponseDto> handleAuthentication(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponseDto(HttpStatus.UNAUTHORIZED.value(), "Authentication required"));
+    }
+
     @ExceptionHandler({CardNotFoundException.class, UserNotFoundException.class})
     public ResponseEntity<ErrorResponseDto> handleNotFound(Exception e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -49,13 +63,6 @@ public class GlobalExceptionHandler {
                         errors));
     }
 
-    @ExceptionHandler({Exception.class})
-    public ResponseEntity<ErrorResponseDto> handleUnexpected(Exception e) {
-        log.error("Unhandled Exception", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Server error"));
-    }
-
     @ExceptionHandler({
             MethodArgumentTypeMismatchException.class,
             HttpMessageNotReadableException.class,
@@ -70,5 +77,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleHttpRequestMethodNotSupported(Exception e) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponseDto(HttpStatus.METHOD_NOT_ALLOWED.value(), "Method not allowed"));
+    }
+
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity<ErrorResponseDto> handleUnexpected(Exception e) {
+        log.error("Unhandled Exception", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponseDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Server error"));
     }
 }

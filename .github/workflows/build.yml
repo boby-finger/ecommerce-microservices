@@ -6,13 +6,14 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-env:
-  WORKDIR: ./user-service
-
 jobs:
   build-test-analyze:
-    name: Build, Test, Analyze
+    name: Build, Test, Analyze (${{ matrix.service }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [ user-service, authentication-service ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,26 +28,29 @@ jobs:
           cache: maven
 
       - name: Build
-        working-directory: ${{ env.WORKDIR }}
+        working-directory: ./${{ matrix.service }}
         run: ./mvnw -B clean compile
 
       - name: Test
-        working-directory: ${{ env.WORKDIR }}
+        working-directory: ./${{ matrix.service }}
         run: ./mvnw -B verify
-
       - name: Code analysis
-        working-directory: ${{ env.WORKDIR }}
+        if: matrix.service == 'user-service'
+        working-directory: ./${{ matrix.service }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./mvnw -B sonar:sonar -Dsonar.projectKey=boby-finger_ecommerce-microservices
 
   docker-image:
-    name: Build & push Docker image
+    name: Build & push Docker image (${{ matrix.service }})
     needs: build-test-analyze
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        service: [ user-service, authentication-service ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,8 +65,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ${{ env.WORKDIR }}
-          push: true
+          context: ./${{ matrix.service }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ghcr.io/${{ github.repository }}/user-service:latest
-            ghcr.io/${{ github.repository }}/user-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}

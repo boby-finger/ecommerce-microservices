@@ -1,0 +1,49 @@
+server:
+  port: 8002
+
+admin:
+  username: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}
+  name: ${ADMIN_NAME}
+  surname: ${ADMIN_SURNAME}
+  email: ${ADMIN_EMAIL}
+  birth_date: ${ADMIN_BIRTHDATE}
+
+app:
+  rsa:
+    private-key: classpath:keys/private.pem
+    public-key: classpath:keys/public.pem
+
+user-service:
+  internal-api-key: ${INTERNAL_API_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+spring:
+  application:
+    name: authentication-service
+
+  profiles:
+    default: local
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
+    open-in-view: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
