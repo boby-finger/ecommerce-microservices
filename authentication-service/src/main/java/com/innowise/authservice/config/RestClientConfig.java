@@ -7,11 +7,12 @@ import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
-
     @Bean
-    public RestClient userServiceRestClient(@Value("${user-service.base-url}") String baseUrl) {
+    public RestClient userServiceRestClient(@Value("${user-service.base-url}") String baseUrl,
+                                            @Value("${user-service.internal-api-key}") String internalApiKey) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
+                .defaultHeader("X-Internal-Api-Key", internalApiKey)
                 .build();
     }
 }
