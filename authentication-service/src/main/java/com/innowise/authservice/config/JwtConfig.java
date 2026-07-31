@@ -1,6 +1,9 @@
 package com.innowise.authservice.config;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -12,8 +15,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
-import java.util.UUID;
-
 @Configuration
 public class JwtConfig {
     private final RsaKeyProperties rsaKeyProperties;
@@ -23,13 +24,14 @@ public class JwtConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() {
+    public JWKSource<SecurityContext> jwkSource() throws JOSEException {
         RSAKey rsaKey = new RSAKey.Builder(rsaKeyProperties.publicKey())
                 .privateKey(rsaKeyProperties.privateKey())
-                .keyID(UUID.randomUUID().toString())
+                .keyUse(KeyUse.SIGNATURE)
+                .algorithm(JWSAlgorithm.RS256)
+                .keyIDFromThumbprint()
                 .build();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return new ImmutableJWKSet<>(jwkSet);
+        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
     }
 
     @Bean
