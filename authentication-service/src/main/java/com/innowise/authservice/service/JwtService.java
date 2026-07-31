@@ -47,6 +47,7 @@ public class JwtService {
     public String generateRefreshToken(Credentials credentials) {
         Instant now = Instant.now();
         JwtClaimsSet claimsSet = JwtClaimsSet.builder()
+                .id(UUID.randomUUID().toString())
                 .issuer(ISSUER)
                 .issuedAt(now)
                 .expiresAt(now.plus(REFRESH_TOKEN_VALIDITY_DAYS, ChronoUnit.DAYS))
