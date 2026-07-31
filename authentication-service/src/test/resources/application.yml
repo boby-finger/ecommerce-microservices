@@ -1,0 +1,32 @@
+admin:
+  seed: false
+  username: test-admin
+  password: test-admin-password
+  name: Test
+  surname: Admin
+  email: test-admin@example.com
+  birth_date: 01.01.1990
+
+app:
+  rsa:
+    private-key: classpath:keys/private.pem
+    public-key: classpath:keys/public.pem
+
+user-service:
+  base-url: http://localhost:8081
+  internal-api-key: test-internal-key
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
+    open-in-view: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml

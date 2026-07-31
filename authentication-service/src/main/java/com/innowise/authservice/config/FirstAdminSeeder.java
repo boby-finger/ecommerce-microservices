@@ -7,6 +7,7 @@ import com.innowise.authservice.repository.CredentialsRepository;
 import com.innowise.authservice.user.UserServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "admin", name = "seed", havingValue = "true", matchIfMissing = true)
 public class FirstAdminSeeder implements CommandLineRunner {
     private final CredentialsRepository credentialsRepository;
     private final UserServiceClient userServiceClient;
