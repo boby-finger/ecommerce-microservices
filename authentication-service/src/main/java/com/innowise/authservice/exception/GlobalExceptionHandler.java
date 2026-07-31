@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -57,5 +58,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new  ErrorResponseDto(HttpStatus.UNAUTHORIZED.value(), "Invalid username or password"));
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponseDto(HttpStatus.FORBIDDEN.value(), "Access Denied"));
     }
 }
