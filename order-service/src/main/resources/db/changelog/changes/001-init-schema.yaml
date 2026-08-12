@@ -1,0 +1,175 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 001-create-items-table
+      author: valery
+      changes:
+        - createTable:
+            tableName: items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: NUMERIC(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE items
+              ADD CONSTRAINT check_items_price_non_negative CHECK (price >= 0)
+            rollback: ALTER TABLE items DROP CONSTRAINT check_items_price_non_negative
+
+  - changeSet:
+      id: 002-create-orders-table
+      author: valery
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_price
+                  type: NUMERIC(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE orders
+              ADD CONSTRAINT check_orders_total_price_non_negative CHECK (total_price >= 0)
+            rollback: ALTER TABLE orders DROP CONSTRAINT check_orders_total_price_non_negative
+        - createIndex:
+            indexName: index_orders_user_id_deleted
+            tableName: orders
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: deleted
+        - createIndex:
+            indexName: index_orders_status
+            tableName: orders
+            columns:
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 003-create-order-items-table
+      author: valery
+      changes:
+        - createTable:
+            tableName: order_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: order_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_order_items_orders
+                    references: orders(id)
+                    deleteCascade: true
+              - column:
+                  name: item_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_order_items_items
+                    references: items(id)
+              - column:
+                  name: quantity
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE order_items
+              ADD CONSTRAINT check_order_items_quantity_positive CHECK (quantity > 0)
+            rollback: ALTER TABLE order_items DROP CONSTRAINT check_order_items_quantity_positive
+        - createIndex:
+            indexName: index_order_items_order_id
+            tableName: order_items
+            columns:
+              - column:
+                  name: order_id
+        - createIndex:
+            indexName: index_order_items_item_id
+            tableName: order_items
+            columns:
+              - column:
+                  name: item_id
+        - addUniqueConstraint:
+            tableName: order_items
+            columnNames: order_id, item_id
+            constraintName: unique_order_items_order_id_item_id

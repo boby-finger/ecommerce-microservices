@@ -1,6 +1,11 @@
-package com.innowise.userservice.model;
+package com.innowise.orderservice.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
@@ -16,6 +21,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public abstract class BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false, updatable = false)
@@ -31,21 +37,18 @@ public abstract class BaseEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || Hibernate.getClass(this) != Hibernate.getClass(obj)) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || Hibernate.getClass(this) != Hibernate.getClass(obj)) {
+            return false;
+        }
         BaseEntity that = (BaseEntity) obj;
-        return this.id.equals(that.id);
+        return this.id != null && this.id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        /* изза того что могут быть проблемы с тем что
-        при использовании lazyload hibernate создает прокси классы
-        и тот же this.getClass вернет класс прокси +
-        если объект был transient и после становления persistent
-        мог поменять свой id изза чего поменялся бы hash, в документации написано
-        что лучше использовать Hibernate.getClass(this).hashCode()
-        */
         return Hibernate.getClass(this).hashCode();
     }
 }

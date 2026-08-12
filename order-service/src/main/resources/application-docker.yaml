@@ -1,0 +1,11 @@
+user-service:
+  base-url: ${USER_SERVICE_URL:http://user-service:8081}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://order-postgres-db:5432/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    show-sql: false
