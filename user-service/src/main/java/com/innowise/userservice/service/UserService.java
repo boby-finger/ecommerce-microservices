@@ -78,4 +78,10 @@ public class UserService {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userRepository.delete(user);
     }
+
+    public UserResponseDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        return userMapper.toDto(user);
+    }
 }

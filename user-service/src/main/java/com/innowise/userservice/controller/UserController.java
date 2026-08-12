@@ -5,6 +5,7 @@ import com.innowise.userservice.dto.UserResponseDto;
 import com.innowise.userservice.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @access.isSelf(#id, authentication)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'INTERNAL') or @access.isSelf(#id, authentication)")
     public ResponseEntity<UserWithCardsResponseDto> getUserById(@P("id") @PathVariable("id") UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserWithCardsById(id));
     }
@@ -65,5 +66,11 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable("id") UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/by-email")
+    @PreAuthorize("hasAnyRole('ADMIN', 'INTERNAL')")
+    public ResponseEntity<UserResponseDto> getUserByEmail(@RequestParam @Email String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserByEmail(email));
     }
 }
