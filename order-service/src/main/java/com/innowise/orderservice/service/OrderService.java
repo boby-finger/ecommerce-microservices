@@ -28,25 +28,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrderService {
-
-    /**
-     * Once an order is delivered or cancelled it is a historical record. Editing it would
-     * silently rewrite what a customer was charged for.
-     */
     private static final Set<OrderStatus> FINAL_STATUSES =
             EnumSet.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED);
 
@@ -57,18 +47,12 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto request) {
-        // Resolved first: if the user does not exist there is no point touching the database,
-        // and the remote call must not happen while a transaction holds a connection open.
         UserInfoDto user = userServiceClient.getUserByEmail(request.userEmail());
-
         Order order = new Order();
         order.setUserId(user.id());
         order.setStatus(OrderStatus.CREATED);
         order.setDeleted(false);
-
         fillItems(order, request.items());
-
-        // One save: cascade = ALL persists the lines together with the order.
         Order saved = orderRepository.save(order);
         return orderMapper.toDto(saved, user);
     }
@@ -80,15 +64,15 @@ public class OrderService {
     }
 
     public Page<OrderSummaryDto> searchOrders(OrderFilterDto filter, Pageable pageable) {
-        // allOf drops the nulls that the specification methods return for absent filters,
-        // so only notDeleted() is guaranteed to be part of every query.
-        Specification<Order> specification = Specification.allOf(
-                OrderSpecifications.notDeleted(),
-                OrderSpecifications.hasUserId(filter.userId()),
-                OrderSpecifications.createdBetween(filter.createdFrom(), filter.createdTo()),
-                OrderSpecifications.hasStatusIn(filter.statuses())
-        );
-        return toSummaryPage(orderRepository.findAll(specification, pageable));
+        List<Specification<Order>> specifications = Stream.of(
+                        OrderSpecifications.notDeleted(),
+                        OrderSpecifications.hasUserId(filter.userId()),
+                        OrderSpecifications.createdBetween(filter.createdFrom(), filter.createdTo()),
+                        OrderSpecifications.hasStatusIn(filter.statuses()))
+                .filter(Objects::nonNull)
+                .toList();
+
+        return toSummaryPage(orderRepository.findAll(Specification.allOf(specifications), pageable));
     }
 
     public Page<OrderSummaryDto> getOrdersByUserId(UUID userId, Pageable pageable) {
@@ -105,22 +89,12 @@ public class OrderService {
         }
 
         order.setStatus(request.status());
-
-        // orphanRemoval turns clearing the list into deletes of the old rows. Hibernate runs
-        // orphan removals before inserts, so replacing a line with one for the same item does
-        // not collide with the unique constraint on (order_id, item_id).
         order.getItems().clear();
+        orderRepository.flush();
         fillItems(order, request.items());
-
-        // No explicit save: the entity is managed inside the transaction and flushed on commit.
         return orderMapper.toDto(order, userServiceClient.getUserById(order.getUserId()));
     }
 
-    /**
-     * Soft delete. The flag is set by hand rather than through @SQLDelete because the order
-     * cascades REMOVE to its lines: a real delete call would wipe the lines and leave a
-     * flagged order with nothing in it.
-     */
     @Transactional
     public void deleteOrder(UUID id) {
         Order order = orderRepository.findByIdAndDeletedFalse(id)
@@ -128,10 +102,6 @@ public class OrderService {
         order.setDeleted(true);
     }
 
-    /**
-     * One remote call per distinct user rather than per order: a page of twenty orders from
-     * three customers costs three calls, not twenty.
-     */
     private Page<OrderSummaryDto> toSummaryPage(Page<Order> orders) {
         Map<UUID, UserInfoDto> usersById = new HashMap<>();
         for (Order order : orders) {
@@ -140,10 +110,6 @@ public class OrderService {
         return orders.map(order -> orderMapper.toSummaryDto(order, usersById.get(order.getUserId())));
     }
 
-    /**
-     * Builds the lines and the total from the prices stored in the database. The client sends
-     * item ids and quantities only, so it cannot influence what the order costs.
-     */
     private void fillItems(Order order, List<OrderItemRequestDto> requestedItems) {
         Set<UUID> seen = new HashSet<>();
         for (OrderItemRequestDto requested : requestedItems) {
