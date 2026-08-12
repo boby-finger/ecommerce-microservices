@@ -35,10 +35,11 @@ databaseChangeLog:
                   defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
-        - addCheckConstraint:
-            tableName: items
-            constraintName: check_items_price_non_negative
-            constraintBody: price >= 0
+        - sql:
+            sql: >
+              ALTER TABLE items
+              ADD CONSTRAINT check_items_price_non_negative CHECK (price >= 0)
+            rollback: ALTER TABLE items DROP CONSTRAINT check_items_price_non_negative
 
   - changeSet:
       id: 002-create-orders-table
@@ -86,10 +87,11 @@ databaseChangeLog:
                   defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
-        - addCheckConstraint:
-            tableName: orders
-            constraintName: check_orders_total_price_non_negative
-            constraintBody: total_price >= 0
+        - sql:
+            sql: >
+              ALTER TABLE orders
+              ADD CONSTRAINT check_orders_total_price_non_negative CHECK (total_price >= 0)
+            rollback: ALTER TABLE orders DROP CONSTRAINT check_orders_total_price_non_negative
         - createIndex:
             indexName: index_orders_user_id_deleted
             tableName: orders
@@ -150,10 +152,11 @@ databaseChangeLog:
                   defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
-        - addCheckConstraint:
-            tableName: order_items
-            constraintName: check_order_items_quantity_positive
-            constraintBody: quantity > 0
+        - sql:
+            sql: >
+              ALTER TABLE order_items
+              ADD CONSTRAINT check_order_items_quantity_positive CHECK (quantity > 0)
+            rollback: ALTER TABLE order_items DROP CONSTRAINT check_order_items_quantity_positive
         - createIndex:
             indexName: index_order_items_order_id
             tableName: order_items
