@@ -10,6 +10,7 @@ import java.util.UUID;
 public record OrderResponseDto(
         UUID id,
         UUID userId,
+        UserInfoDto user,
         OrderStatus status,
         BigDecimal totalPrice,
         List<OrderItemResponseDto> items,

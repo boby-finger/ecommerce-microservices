@@ -9,6 +9,7 @@ import java.util.UUID;
 public record OrderSummaryDto(
         UUID id,
         UUID userId,
+        UserInfoDto user,
         OrderStatus status,
         BigDecimal totalPrice,
         Instant createdAt
