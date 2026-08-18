@@ -1,0 +1,10 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 003-create-payments-status-timestamp-index
+      author: valery
+      changes:
+        - createIndex:
+            collectionName: payments
+            keys: '{ "status": 1, "timestamp": 1 }'
+            options: '{ "name": "index_payments_status_timestamp" }'

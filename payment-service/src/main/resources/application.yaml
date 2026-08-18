@@ -1,0 +1,70 @@
+server:
+  port: 8084
+
+security:
+  jwt:
+    jwk-set-uri: ${AUTH_JWKS_URI}
+    issuer: ${AUTH_ISSUER:authentication-service}
+
+random-number:
+  url: ${RANDOM_NUMBER_API_URL}
+  connect-timeout: 2s
+  read-timeout: 3s
+
+kafka:
+  topic:
+    payment-events: ${KAFKA_PAYMENT_EVENTS_TOPIC:payment-events}
+    partitions: 3
+    replicas: 1
+
+payment:
+  resolution:
+    enabled: true
+    interval-ms: 60000
+    min-age: 1m
+    give-up-age: 2h
+    batch-size: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+spring:
+  application:
+    name: payment-service
+
+  profiles:
+    default: local
+
+  mongodb:
+    representation:
+      uuid: standard
+
+  data:
+    mongodb:
+      auto-index-creation: false
+      representation:
+        big-decimal: decimal128
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 30000
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml

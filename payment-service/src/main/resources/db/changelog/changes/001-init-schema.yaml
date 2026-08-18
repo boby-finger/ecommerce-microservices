@@ -1,0 +1,33 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 001-create-payments-collection
+      author: valery
+      changes:
+        - createCollection:
+            collectionName: payments
+
+  - changeSet:
+      id: 002-create-payments-indexes
+      author: valery
+      changes:
+        - createIndex:
+            collectionName: payments
+            keys: '{ "order_id": 1 }'
+            options: '{ "name": "index_payments_order_id" }'
+        - createIndex:
+            collectionName: payments
+            keys: '{ "user_id": 1 }'
+            options: '{ "name": "index_payments_user_id" }'
+        - createIndex:
+            collectionName: payments
+            keys: '{ "status": 1 }'
+            options: '{ "name": "index_payments_status" }'
+        - createIndex:
+            collectionName: payments
+            keys: '{ "timestamp": -1 }'
+            options: '{ "name": "index_payments_timestamp" }'
+        - createIndex:
+            collectionName: payments
+            keys: '{ "user_id": 1, "timestamp": -1 }'
+            options: '{ "name": "index_payments_user_id_timestamp" }'

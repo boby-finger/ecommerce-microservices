@@ -1,0 +1,21 @@
+services:
+
+  payment-mongo-db:
+    image: mongo:7
+    container_name: payment_service_db
+    environment:
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-27017}:27017"
+    volumes:
+      - mongo_data_payment:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mongo_data_payment:

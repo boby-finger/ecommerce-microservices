@@ -1,0 +1,13 @@
+security:
+  jwt:
+    jwk-set-uri: ${AUTH_JWKS_URI:http://auth-service:8002/oauth2/jwks}
+
+random-number:
+  url: ${RANDOM_NUMBER_API_URL:https://www.random.org/integers/?num=1&min=1&max=1000000&col=1&base=10&format=plain&rnd=new}
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+  mongodb:
+    uri: mongodb://${DB_USERNAME}:${DB_PASSWORD}@payment-mongo-db:27017/${DB_NAME}?authSource=admin
