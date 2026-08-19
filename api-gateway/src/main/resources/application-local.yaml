@@ -1,0 +1,14 @@
+services:
+  auth:
+    url: http://localhost:8002
+  user:
+    url: http://localhost:8081
+  order:
+    url: http://localhost:8083
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8002/oauth2/jwks

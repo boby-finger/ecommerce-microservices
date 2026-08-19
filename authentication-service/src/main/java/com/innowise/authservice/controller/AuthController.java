@@ -46,4 +46,11 @@ public class AuthController {
     public ResponseEntity<TokenResponseDto> admin(@Valid @RequestBody AdminRequestDto adminRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.createAdmin(adminRequestDto));
     }
+
+    @PostMapping("/internal/credentials")
+    @PreAuthorize("hasRole('INTERNAL')")
+    public ResponseEntity<TokenResponseDto> createCredentials(
+            @Valid @RequestBody CreateCredentialsRequestDto request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.createCredentials(request));
+    }
 }

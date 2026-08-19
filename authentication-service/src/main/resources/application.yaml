@@ -9,6 +9,9 @@ admin:
   email: ${ADMIN_EMAIL}
   birth_date: ${ADMIN_BIRTHDATE}
 
+security:
+  internal-api-key: ${INTERNAL_API_KEY}
+
 app:
   rsa:
     private-key: classpath:keys/private.pem

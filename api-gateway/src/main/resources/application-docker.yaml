@@ -1,0 +1,14 @@
+services:
+  auth:
+    url: http://auth-service:8002
+  user:
+    url: http://user-service:8081
+  order:
+    url: http://order-service:8083
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-service:8002/oauth2/jwks
