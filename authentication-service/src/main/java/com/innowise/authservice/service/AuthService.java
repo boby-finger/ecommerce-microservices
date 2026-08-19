@@ -45,6 +45,20 @@ public class AuthService {
                         registerRequestDto.surname(), registerRequestDto.birthDate()));
     }
 
+    @Transactional
+    public TokenResponseDto createCredentials(CreateCredentialsRequestDto request) {
+        if (credentialsRepository.existsByUsername(request.username())) {
+            throw new UsernameAlreadyExistsException(request.username());
+        }
+        Credentials credentials = new Credentials();
+        credentials.setUsername(request.username());
+        credentials.setPasswordHash(passwordEncoder.encode(request.password()));
+        credentials.setRole(Role.USER);
+        credentials.setUserId(request.userId());
+        credentialsRepository.save(credentials);
+        return createTokens(credentials);
+    }
+
     private TokenResponseDto createUserWithRole(String username, String password, Role role,
                                              UserServiceCreateRequestDto profileRequest) {
         if (credentialsRepository.existsByUsername(username)) {
