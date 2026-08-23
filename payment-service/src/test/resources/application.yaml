@@ -1,0 +1,64 @@
+server:
+  port: 0
+
+security:
+  jwt:
+    jwk-set-uri: http://localhost:8002/oauth2/jwks
+    issuer: authentication-service
+
+random-number:
+  url: http://localhost/unused-in-tests
+  connect-timeout: 1s
+  read-timeout: 1s
+
+kafka:
+  topic:
+    payment-events: payment-events
+    partitions: 3
+    replicas: 1
+
+payment:
+  resolution:
+    # в тестах планировщик не тикает сам: StuckPaymentResolver вызывается напрямую,
+    # иначе фоновый проход произвольно менял бы статусы посреди других тестов
+    enabled: false
+    interval-ms: 60000
+    min-age: 1m
+    give-up-age: 2h
+    batch-size: 100
+
+spring:
+  mongodb:
+    representation:
+      uuid: standard
+
+  data:
+    mongodb:
+      auto-index-creation: false
+      representation:
+        big-decimal: decimal128
+
+  kafka:
+    # порт, на котором заведомо никто не слушает: тесты, которым Kafka не нужна,
+    # не поднимают брокер и проверяют заодно, что недоступность Kafka не ломает платежи.
+    # PaymentEventIntegrationTest перекрывает адрес на Testcontainers-брокер.
+    bootstrap-servers: localhost:1
+    admin:
+      # не ходить к брокеру при старте контекста ради создания топика
+      auto-create: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+        # маленькие таймауты: неудачная публикация должна отваливаться быстро,
+        # иначе каждый тестовый платёж тормозил бы прогон
+        max.block.ms: 500
+        request.timeout.ms: 500
+        delivery.timeout.ms: 1000
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
