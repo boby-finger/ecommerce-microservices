@@ -1,0 +1,20 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 002-add-orders-status-check
+      author: valery
+      changes:
+        # В домене появился статус PAYMENT_FAILED (его ставит консьюмер событий оплаты).
+        # Сам по себе новый элемент enum схему не меняет: колонка VARCHAR(20) приняла бы
+        # любую строку. Именно поэтому здесь фиксируется список допустимых значений --
+        # чтобы расширение словаря статусов было видимым фактом схемы, а опечатка или
+        # ручной UPDATE не смогли положить в колонку мусор. Плата за это -- каждый новый
+        # статус требует отдельного changeset.
+        # Пишется сырым SQL, потому что addCheckConstraint -- это Liquibase Pro
+        # (тот же приём, что и в check_orders_total_price_non_negative).
+        - sql:
+            sql: >
+              ALTER TABLE orders
+              ADD CONSTRAINT check_orders_status CHECK (status IN
+              ('CREATED', 'PAID', 'PAYMENT_FAILED', 'SHIPPED', 'DELIVERED', 'CANCELLED'))
+            rollback: ALTER TABLE orders DROP CONSTRAINT check_orders_status
