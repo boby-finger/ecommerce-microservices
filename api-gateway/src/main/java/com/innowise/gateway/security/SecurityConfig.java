@@ -31,6 +31,12 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/register").permitAll()
                         .pathMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // сумма платежей по всем пользователям -- админский отчёт;
+                        // payment-service проверяет роль и сам (@PreAuthorize), здесь это
+                        // второй рубеж, чтобы чужой запрос не доходил до сервиса вовсе.
+                        // Матчер точный, без /**, поэтому /api/v1/payments/total/me
+                        // (сумма за себя) под него не подпадает.
+                        .pathMatchers(HttpMethod.GET, "/api/v1/payments/total").hasRole("ADMIN")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->

@@ -5,6 +5,8 @@ services:
     url: http://user-service:8081
   order:
     url: http://order-service:8083
+  payment:
+    url: http://payment-service:8084
 
 spring:
   security:
