@@ -2,6 +2,9 @@ user-service:
   base-url: ${USER_SERVICE_URL:http://user-service:8081}
 
 spring:
+  kafka:
+    # внутренний listener, адрес по имени сервиса в сети compose
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
   datasource:
     url: jdbc:postgresql://order-postgres-db:5432/${DB_NAME}
     username: ${DB_USERNAME}

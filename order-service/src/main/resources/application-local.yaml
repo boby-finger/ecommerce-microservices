@@ -1,4 +1,7 @@
 spring:
+  kafka:
+    # внешний listener брокера, проброшенный на хост
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}

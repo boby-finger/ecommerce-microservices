@@ -5,6 +5,10 @@ user-service:
   base-url: http://localhost:0
   internal-api-key: test-internal-key
 
+kafka:
+  topic:
+    payment-events: payment-events
+
 resilience4j:
   circuitbreaker:
     instances:
@@ -29,6 +33,38 @@ spring:
         type:
           preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
     open-in-view: false
+
+  kafka:
+    # адрес-заглушка: тестам, которым Kafka не нужна, брокер не поднимается.
+    # PaymentEventConsumerIntegrationTest перекрывает адрес на Testcontainers-брокер
+    # и включает listener обратно.
+    bootstrap-servers: localhost:1
+    admin:
+      auto-create: false
+    listener:
+      # без этого контейнер слушателя в каждом тесте бесконечно долбился бы
+      # в несуществующий брокер и засорял прогон
+      auto-startup: false
+      ack-mode: RECORD
+      concurrency: 3
+    consumer:
+      group-id: order-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.innowise.orderservice.event.PaymentEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+        max.block.ms: 500
+        request.timeout.ms: 500
+        delivery.timeout.ms: 1000
 
   liquibase:
     enabled: true

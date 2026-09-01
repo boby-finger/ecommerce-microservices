@@ -5,6 +5,10 @@ user-service:
   base-url: ${USER_SERVICE_URL:http://localhost:8081}
   internal-api-key: ${INTERNAL_API_KEY}
 
+kafka:
+  topic:
+    payment-events: ${KAFKA_PAYMENT_EVENTS_TOPIC:payment-events}
+
 management:
   endpoints:
     web:
@@ -50,6 +54,33 @@ spring:
         type:
           preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
     open-in-view: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: order-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # ErrorHandlingDeserializer оборачивает разбор: битое сообщение не роняет
+      # контейнер, а приходит в обработчик ошибок как DeserializationException
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        # продюсер отключил type-заголовки, поэтому тип задаём сами
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.innowise.orderservice.event.PaymentEvent
+    producer:
+      # продюсер нужен только для отправки в dead letter topic
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    listener:
+      # коммит смещения после каждой успешно обработанной записи
+      ack-mode: RECORD
+      # по потоку на партицию: порядок внутри партиции (по одному заказу) сохраняется
+      concurrency: 3
 
   liquibase:
     enabled: true
